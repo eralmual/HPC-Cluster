@@ -6,7 +6,7 @@ NUM_THREADS=2
 BUILD_FOLDER=/home/erick/google_drive/TEC/SistemasOperativos/Proyectos/Proyecto3/HPC-Cluster/shared
 TEST_FILE=test
 
-HOSTS=worker1,manager
+HOSTS=manager,worker1
 
 install:
 	# Update
@@ -36,3 +36,11 @@ img_proc_test:
 	fi
 	# Compile the code
 	@${COMP} img_proc.c -o ${BUILD_FOLDER}/img_proc -lm -lpng
+
+cluster:
+	# If the folder doesnt exists create it
+	@if [ ! -d ${BUILD_DIR} ]; then \
+		mkdir ${BUILD_DIR}; \
+	fi
+	# Compile the code
+	@${COMP} cluster.c -o ${BUILD_FOLDER}/cluster -lm -lpng

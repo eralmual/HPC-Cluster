@@ -6,6 +6,7 @@
 #define HPC_CLUSTER_TOOLS_H
 
 #include <png.h>
+#include "constants.h"
 
 
 uint8_t* get_values(uint8_t* image, size_t* current_pos, uint8_t kernel_size){
@@ -19,27 +20,101 @@ uint8_t* get_values(uint8_t* image, size_t* current_pos, uint8_t kernel_size){
 
 
     // Define the limits of the kernel
-    uint8_t  steps_back = half_kernel;
+    uint8_t steps_back = half_kernel;
     uint8_t steps_fwd = half_kernel;
     // If the kernel size if even
     if(kernel_size % 2 == 0){
         steps_back = half_kernel - 1;
     }
 
+    // Define the upper limit
+    size_t upper_lim_h = HEIGHT*WIDTH*CHANNELS;
+    size_t upper_lim_w = WIDTH*CHANNELS;
+
+    // Set limmits as integers since size_t gives sign problems
+    int l_h = current_pos[1] - steps_back*upper_lim_w;
+    int u_h = current_pos[1] + steps_fwd*upper_lim_w;
+    int l_w = current_pos[0] - steps_back*CHANNELS;
+    int u_w = current_pos[0] + steps_fwd*CHANNELS;
+
     // Get the values
-    for (int h = current_pos[1] - steps_back*WIDTH*CHANNELS; h <= current_pos[1] + steps_fwd*WIDTH*CHANNELS; h += WIDTH*CHANNELS)
+    for (int h = l_h; h <= u_h; h += upper_lim_w)
     {
-        // If we are in a valid position search for the value
-        if((h >= 0) && (h < HEIGHT*WIDTH*CHANNELS)){
-            for (int w = current_pos[0] - steps_back*CHANNELS; w <= current_pos[0] + steps_fwd*CHANNELS; w += CHANNELS)
-            {
-                // If we are in a valid position search for the value
-                if((w >= 0) && (w < WIDTH*CHANNELS)){
+
+        for (int w = l_w; w <= u_w; w += CHANNELS)
+        {
+
+            if(pad == ZERO){
+                // If we are in a invalid position for zero padding, break
+                if((h < 0) && (h >= upper_lim_h)){
+                    break;
+                }
+                // If we are in a valid position for zero padding, search for the value
+                else if((w >= 0) && (w < upper_lim_w)){
                     *(values + v++) =  *(image + h + w);
                 }
             }
+            // if we have symmetric padding
+            else if(pad == SYMMETRIC){
+                // Define the new indexes, offsets and steps
+                int new_w = w;
+                int new_h = h;
+                int offset_w = 0;
+                int offset_h = 0;
+                int step_w = CHANNELS;
+                int step_h = upper_lim_w;
 
+                /* Calculate the width */
+                // If we are below 0 in w, then increment until we are over it
+                // count the number of increments and do them again minus one time
+                if(new_w < 0){
+                    while(new_w < 0){
+                        new_w += step_w;
+                        offset_w += step_w;
+                    }
+                    // Add the offset to get to the reflection
+                    new_w += offset_w - step_w;
+                }
+                
+                // If we are over the upperlimit in w, then decrement until we are under it
+                // count the number of decrements and do them again minus one time
+                else if(new_w >= upper_lim_w){
+                    while(new_w >= upper_lim_w){
+                        new_w -= step_w;
+                        offset_w -= step_w;
+                    }
+                    // Add the offset to get to the reflection
+                    new_w -= offset_w + step_w;
+                }
+
+                /* Calculate the height */
+                // If we are below 0 in h, then increment until we are over it
+                // count the number of increments and do them again minus one time
+                if(new_h < 0){
+                    while(new_h < 0){
+                        new_h += step_h;
+                        offset_h += step_h;
+                    }
+                    // Add the offset to get to the reflection
+                    new_h += offset_h - step_h;
+                }
+                
+                // If we are over the upperlimit in h, then decrement until we are under it
+                // count the number of decrements and do them again minus one time
+                else if(new_h >= upper_lim_h){
+                    while(new_h >= upper_lim_h){
+                        new_h -= step_h;
+                        offset_h -= step_h;
+                    }
+                    // Add the offset to get to the reflection
+                    new_h -= offset_h + step_h;
+                }
+                // Get the values
+                *(values + v++) =  *(image + new_h + new_w);
+            }
+            
         }
+
     }
 
     return values;
