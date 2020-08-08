@@ -2,8 +2,8 @@
 // Created by erick on 5/5/20.
 //
 
-#ifndef T1_RAW_TOOLS_H
-#define T1_RAW_TOOLS_H
+#ifndef HPC_CLUSTER_TOOLS_H
+#define HPC_CLUSTER_TOOLS_H
 
 #include <png.h>
 
@@ -229,4 +229,4 @@ int* get_img_dims(const char *originalName){
 
 
 
-#endif //T1_RAW_TOOLS_H
+#endif //HPC_CLUSTER_TOOLS_H

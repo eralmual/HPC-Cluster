@@ -2,8 +2,8 @@
 // Created by erick on 20/5/20.
 //
 
-#ifndef T1_RAW_IMAGEPROCESSING_H
-#define T1_RAW_IMAGEPROCESSING_H
+#ifndef HPC_CLUSTER_IMAGEPROCESSING_H
+#define HPC_CLUSTER_IMAGEPROCESSING_H
 
 
 #include <stdio.h>
@@ -31,7 +31,7 @@
  */
 uint8_t* read_image(char* filename, int width, int height, int channels, int desired_channels){
 
-
+    //printf("%s\t%i\t%i\t%i\t%i\n", filename, width, height, channels, desired_channels);
     // Read the image with a given w*h*c, last parameter is to ignore channels
     uint8_t* image = stbi_load(filename, &width, &height, &channels, desired_channels);
     if(image == NULL) {
@@ -43,9 +43,9 @@ uint8_t* read_image(char* filename, int width, int height, int channels, int des
     return image;
 }
 
-void write_image(char* filename, uint8_t* image){
+void write_image(char* filename, uint8_t* image, int width, int height, int channels){
     // Write the image in png
-    stbi_write_png(filename, WIDTH, HEIGHT, CHANNELS, image, WIDTH*CHANNELS);
+    stbi_write_png(filename, width, height, channels, image, width*channels);
 }
 
 /*  Function that takes an image and applies to it a given filter using the defined
@@ -57,26 +57,31 @@ void write_image(char* filename, uint8_t* image){
 */
 uint8_t* apply_filter(  uint8_t* target,
                         uint8_t (*filter)(uint8_t*, size_t*, uint8_t),
-                        uint8_t kernel_size){
+                        uint8_t kernel_size,
+                        int width, int height, int channels){
 
     //Prepare variables needed for the convolution process
     size_t pos[2];
-    uint8_t* filtered_image = (uint8_t*) malloc(WIDTH*HEIGHT*CHANNELS * sizeof(uint8_t));
+    uint8_t* filtered_image = (uint8_t*) malloc(width*height*channels * sizeof(uint8_t));
 
+    // Fix to avoid passing as parameter to every function
+    WIDTH = width;
+    HEIGHT = height;
+    CHANNELS = channels;
 
     // Start the convolution
-    // HEIGHT and WIDTH limits have to be multiplicated to take into account
+    // height and width limits have to be multiplicated to take into account
     // the channels of the image
-    for (size_t h = 0; h < HEIGHT*WIDTH*CHANNELS; h += WIDTH*CHANNELS)
+    for (size_t h = 0; h < height*width*channels; h += width*channels)
     {
         pos[1] = h;
-        for (size_t w = 0; w < WIDTH*CHANNELS; w += CHANNELS)
+        for (size_t w = 0; w < width*channels; w += channels)
         {
             // Calc the new kernel center
             pos[0] = w;
 
             // Apply the filter to each channel
-            for (size_t c = 0; c < CHANNELS; ++c)
+            for (size_t c = 0; c < channels; ++c)
             {
                 pos[0] = w + c;
                 // Set the new value in the filtered image
@@ -138,42 +143,33 @@ uint8_t get_strongest_channel(uint8_t* image){
 
 
 
-void processImage( char originalName[256], char filteredName[256] ) {
+void processImage(char* originalName, char* filteredName) {
 
     // Check image dimensions
     char* ext = get_filename_ext(originalName);
-    int* dims;  //{width, height}
+    int* dims = get_img_dims(originalName);  //{width, height}
 
-    //If the extension starts with
-    if(strcmp(ext, "png") == 0){
-        dims = get_png_dim(originalName);
-    }
-    else if((strcmp(ext, "jpg") == 0) || (strcmp(ext, "jpeg") == 0)){
-        dims = get_jpg_dim(originalName);
-    }
-
-    // Update dims
-    WIDTH = *(dims);
-    HEIGHT = *(dims + 1);
-    free(dims);
 
     printf("%s\n", filteredName);
 
     // Load the image
-    uint8_t* image = read_image( originalName, WIDTH, HEIGHT, CHANNELS, CHANNELS);
+    uint8_t* image = read_image( originalName, *(dims), *(dims + 1), CHANNELS, CHANNELS);
     // Define the kernel size
     uint8_t kernel_size = 3;
 
     // Start the convolution
-    uint8_t* median_image = apply_filter(image, &median_filter, kernel_size);
+    uint8_t* median_image = apply_filter(   image, &median_filter, kernel_size,
+                                            *(dims), *(dims + 1), CHANNELS);
 
     // Store the filtered image
-    write_image(filteredName, median_image);
+    write_image(filteredName, median_image,
+                *(dims), *(dims + 1), CHANNELS);
 
     // Free the memory of the images
     stbi_image_free(image);
     free(median_image);
+    free(dims);
 
 }
 
-#endif //T1_RAW_IMAGEPROCESSING_H
+#endif //HPC_CLUSTER_IMAGEPROCESSING_H

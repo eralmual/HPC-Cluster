@@ -2,8 +2,8 @@
 // Created by erick on 5/5/20.
 //
 
-#ifndef T1_RAW_FILTERS_H
-#define T1_RAW_FILTERS_H
+#ifndef HPC_CLUSTER_FILTERS_H
+#define HPC_CLUSTER_FILTERS_H
 
 #include "Tools.h"
 
@@ -91,4 +91,4 @@ uint8_t median_filter(uint8_t* image, size_t* pos, uint8_t kernel_size){
 
 
 
-#endif //T1_RAW_FILTERS_H
+#endif //HPC_CLUSTER_FILTERS_H
