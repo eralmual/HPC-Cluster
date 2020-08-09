@@ -1,9 +1,9 @@
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "ImageProcessing/ImageProcessing.h"
 #include "ClusterManagement/Manager.c"
-
 
 int main(int argc, char** argv) {
     // Initialize the MPI environment
@@ -15,8 +15,20 @@ int main(int argc, char** argv) {
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
+	// Get bandwidth stats
+	if(world_size % 2 == 0){
+		measure_bandwidth();
+	}
+
+	// Define and initialize some variables for excecution
     int* dims;
+	clock_t start, end;
+    double cpu_time_used;
 	uint8_t kernel_size = 3;
+
+	// Start clock 
+	start = clock();
+
     // Only the rank 0 reads the image and distributes it
     if (world_rank == 0) {
 
@@ -40,9 +52,11 @@ int main(int argc, char** argv) {
 		// Free the allocated memory
 		free(img);
 		free(f);
-    } 
 
+    } 
+	// The rest of the threads are just normal workers
 	else{
+
 		// Allocate memory to recieve the dimensions
 		dims = malloc(sizeof(int) * 2);
 		// Recieve the dimensions
@@ -59,11 +73,26 @@ int main(int argc, char** argv) {
 		// Send the filtered image 
 		MPI_Send(f, dims[0]*dims[1]*CHANNELS, MPI_UNSIGNED_CHAR, 0, 0, MPI_COMM_WORLD);
 		//write_image("shared/imgs/rank1_img.png", img, dims[0], dims[1], CHANNELS);
-		//write_image("shared/imgs/rank1_img_filtered.png", f, dims[0], dims[1], CHANNELS);
+		/*const char* fp = "shared/imgs/rank";
+		const char* sp = "_img_filtered.png";
+		char part_name[50];
+		char r[10];
+		sprintf(r, "%d", world_rank);
+		strcpy(part_name, fp);
+		strcat(part_name, r);
+		strcat(part_name, sp);
+		write_image(part_name, f, dims[0], dims[1], CHANNELS);*/
 		// Free the allocated memory
 		free(dims);
 		free(img);
 		free(f);
     }
+
+	// Stop clock and measure elapsed time
+	end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+	
+
     MPI_Finalize();
 }

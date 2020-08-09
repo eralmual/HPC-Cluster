@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "../ImageProcessing/ImageProcessing.h"
-
+#include "Network.c"
 
 
 /*  Loads an image from memory and divides it into equal sized parts,
@@ -108,6 +108,10 @@ void rebuild_img(uint8_t** img, int partition_size){
         filtered_img += partition_size;
         recieve_img(&filtered_img, partition_size, i);
     }
+    
+}
+
+void execution_time(double rank_time){
     
 }
 
