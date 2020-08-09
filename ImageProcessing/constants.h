@@ -10,7 +10,13 @@ enum Padding{
     ZERO,
     SYMMETRIC
 };
-
 enum Padding pad = SYMMETRIC;
+
+
+enum Message{
+    IMAGE,
+    DIMENSIONS,
+    TIME
+};
 
 #endif  // HPC_CLUSTER_CONSTANTS_H

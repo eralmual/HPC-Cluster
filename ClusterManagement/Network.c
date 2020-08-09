@@ -62,16 +62,16 @@ void measure_bandwidth(){
 
     if (rank == 0) {
     resolution = MPI_Wtick();
-    printf("\n******************** MPI Bandwidth Test ********************\n");
+    printf("\n******************** MPI Bandwidth Stats ********************\n");
     printf("Message start size= %d bytes\n",start);
     printf("Message finish size= %d bytes\n",end);
     printf("Incremented by %d bytes per iteration\n",incr);
     printf("Roundtrips per iteration= %d\n",rndtrps);
     printf("MPI_Wtick resolution = %e\n",resolution);
-    printf("************************************************************\n");
+    printf("*************************************************************\n");
     for (i=0; i<numtasks; i++) 
         printf("task %4d is on %s partner=%4d\n",i,hostmap[i],taskpairs[i]);
-    printf("************************************************************\n");
+    printf("*************************************************************\n");
     }
 
 
@@ -116,7 +116,7 @@ void measure_bandwidth(){
         /* only two tasks. */
         for (j=1; j<numtasks/2; j++)
             MPI_Recv(&timings[j], 3, MPI_DOUBLE, j, tag, MPI_COMM_WORLD, &status);
-        printf("***Message size: %8d *** best  /  avg  / worst (MB/sec)\n",n);
+        printf("*** Message size: %8d *** best  /  avg  / worst (MB/sec)\n",n);
         for (j=0; j<numtasks/2; j++) { 
             printf("   task pair: %4d - %4d:    %4.2f / %4.2f / %4.2f \n",
                 j, taskpairs[j], timings[j][0], timings[j][1], timings[j][2]);

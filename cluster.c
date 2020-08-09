@@ -92,6 +92,8 @@ int main(int argc, char** argv) {
 	end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
+	// Time execution metrics
+	execution_time(cpu_time_used, world_rank);
 	
 
     MPI_Finalize();
