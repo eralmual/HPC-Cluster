@@ -44,3 +44,4 @@ cluster:
 	fi
 	# Compile the code
 	@${COMP} cluster.c -o ${BUILD_FOLDER}/cluster -lm -lpng
+	# mpirun -np 2 --host manager,worker1 shared/cluster shared/imgs/SnPGrayscaleLenna.png
